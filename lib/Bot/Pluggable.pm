@@ -1,10 +1,10 @@
-# $Id: Pluggable.pm,v 1.2 2002/07/02 14:34:14 matt Exp $
+# $Id: Pluggable.pm,v 1.4 2002/07/15 13:22:45 matt Exp $
 
 package Bot::Pluggable;
 use POE::Component::IRC::Object;
 use base qw(POE::Component::IRC::Object);
 
-$VERSION = '0.01';
+$VERSION = '0.02';
 
 use strict;
 use POE;
@@ -51,6 +51,25 @@ BEGIN {
         irc_part 
         irc_ping 
         irc_quit
+        irc_dcc_chat
+        irc_dcc_done
+        irc_dcc_error
+        irc_dcc_get
+        irc_dcc_request
+        irc_dcc_send
+        irc_dcc_start
+        irc_snotice
+
+        irc_ctcp_finger
+        irc_ctcp_version
+        irc_ctcp_source
+        irc_ctcp_userinfo
+        irc_ctcp_clientinfo
+        irc_ctcp_errmsg
+        irc_ctcp_ping
+        irc_ctcp_time
+        irc_ctcp_action
+        irc_ctcp_dcc
     );
     
     foreach my $method (@methods) {

@@ -43,6 +43,10 @@ sub irc_public {
             $bot->privmsg( $channel, "No idea, $nick" );
         }
     }
+    else {
+        return 0;
+    }
+    
     return 1;
 }
 

@@ -4,7 +4,7 @@ use strict;
 use POE;
 
 my @channels = (
-    '#axkit-dahut',
+    '#elizabot',
 );
 
 sub irc_001 {
