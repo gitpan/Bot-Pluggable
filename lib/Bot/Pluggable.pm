@@ -1,10 +1,10 @@
-# $Id: Pluggable.pm,v 1.4 2002/07/15 13:22:45 matt Exp $
+# $Id: Pluggable.pm,v 1.5 2002/12/10 13:23:34 matt Exp $
 
 package Bot::Pluggable;
 use POE::Component::IRC::Object;
 use base qw(POE::Component::IRC::Object);
 
-$VERSION = '0.02';
+$VERSION = '0.03';
 
 use strict;
 use POE;
@@ -38,6 +38,29 @@ sub objects {
 }
 
 BEGIN {
+    sub add_event {
+        my $class = shift;
+        my $method = shift;
+        eval "sub $method {\n" .
+          '    my $self = $_[OBJECT];
+               $_[SENDER] = $self;
+               shift(@_);
+               foreach my $obj ($self->objects) {
+                 my $meth = $obj->can(' . "'$method'" . ');
+                 next unless $meth;
+                 my $ret = $meth->($obj, @_);
+                 return if $ret;
+               }
+               foreach my $class ($self->modules) {
+                 my $meth = $class->can(' . "'$method'" . ');
+                 next unless $meth;
+                 my $ret = $meth->($class, @_);
+                 return if $ret;
+               }
+             }';
+        die "Compilation of $method failed: $@" if $@;
+    }
+    
     my @methods = qw(
         irc_001 
         irc_public 
@@ -73,24 +96,7 @@ BEGIN {
     );
     
     foreach my $method (@methods) {
-        eval "sub $method {\n" .
-          '    my $self = $_[OBJECT];
-               $_[SENDER] = $self;
-               shift(@_);
-               foreach my $obj ($self->objects) {
-                 my $meth = $obj->can(' . "'$method'" . ');
-                 next unless $meth;
-                 my $ret = $meth->($obj, @_);
-                 return if $ret;
-               }
-               foreach my $class ($self->modules) {
-                 my $meth = $class->can(' . "'$method'" . ');
-                 next unless $meth;
-                 my $ret = $meth->($class, @_);
-                 return if $ret;
-               }
-             }';
-        die "Compilation of $method failed: $@" if $@;
+        __PACKAGE__->add_event($method);
     }
 }
 
@@ -159,6 +165,13 @@ The C<$bot> object is stored in the C<$_[SENDER]> parameter (C<SENDER>
 is a constant exported by POE). This object is your Bot::Pluggable
 instance, which inherits its methods from POE::Component::IRC::Object,
 allowing you to join channels, send msgs, etc.
+
+If an event isn't available (check the source code for the list of
+events supported by default), then you can add it with:
+
+  Bot::Pluggable->add_event('irc_ctcp_foo');
+
+This is neccessary for CTCP events that aren't defined by default.
 
 =head1 AUTHOR
 
